@@ -36,7 +36,6 @@ using namespace harpocrates;
 const int width = 1280;
 const int height = 720;
 
-const std::string path = { "f:/share/asff/degraded_image/" };
 const std::string vertex_shader_path = { "../shader/base_vertex.glsl" };
 const std::string fragment_shader_path = { "../shader/base_fragment.glsl" };
 
@@ -53,7 +52,9 @@ float vertices[] = {
 };
 
 auto forward_thread() {
-	auto image_list = harpocrates::PathWalker::get_instance()->walk_path(path, ".*\.(jpg|JPG)");
+	// input your own path
+	auto path = std::string();
+	auto image_list = harpocrates::PathWalker::get_instance()->walk_path(path, ".*\.(bmp|BMP|jpg|JPG|png|PNG)");
 	auto algorithm = Algorithm();
 	for (auto &ref : image_list) {
 		algorithm.apply();
@@ -61,9 +62,6 @@ auto forward_thread() {
 }
 
 int main() {
-
-	//auto alpha = imread("f:/share/base/red.jpg", 3);
-	//auto image = imread("f:/share/base/image.jpg", 3);
 
 	auto alpha = new unsigned char[3 * 256 * 256]{ 0 };
 	auto image = new unsigned char[3 * 256 * 256]{ 0 };
@@ -127,12 +125,10 @@ int main() {
 	auto texture_1 = Texture();
 	texture_1.bind();
 	texture_1.apply(256, 256, false, alpha);
-	// texture_1.apply(alpha.cols, alpha.rows, false, alpha.data);
 
 	auto texture_2 = Texture();
 	texture_2.bind();
 	texture_2.apply(256, 256, false, image);
-	// texture_2.apply(image.cols, image.rows, false, image.data);
 
 	shader.use();
 
@@ -141,7 +137,7 @@ int main() {
 
 	auto pt = packaged_task<void()>{ forward_thread };
 	auto f = pt.get_future();
-	auto t = thread(std::move(pt), image);
+	auto t = thread(std::move(pt));
 	t.detach();
 
 	while (!ui.close_window()) {

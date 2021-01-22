@@ -177,7 +177,7 @@ namespace harpocrates {
 	}
 
 	void Camera::mouse_callback(GLFWwindow * window, int button, int action, int mode) {
-		const float speed = 0.02f;
+		const float speed = 0.005f;
 		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
 			__left_button_down = true;
 		}
