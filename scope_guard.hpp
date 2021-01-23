@@ -15,7 +15,7 @@ namespace harpocrates {
 // replace variable value of their marco name
 #define _forward_(_1, _2) _make_name_(_1, _2)
 // define the auto variable of the defer operation
-#define defer(operation) auto _forward_(__COUNTER__, scope_guard) = make_guard([&](){ operation; });
+#define defer(operation) auto _forward_(__COUNTER__, scope_guard) { make_guard([&](){ operation; }) };
 
 	class noncopyable {
 	protected:

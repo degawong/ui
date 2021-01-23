@@ -165,14 +165,14 @@ namespace harpocrates {
 
 	void Camera::cursor_callback(GLFWwindow * window, double x, double y) {
 		if (__left_button_down) {
-			__current_position_x = x;
-			__current_position_y = y;
+			__current_position_x = (float)x;
+			__current_position_y = (float)y;
 		}
 		else {
-			__current_position_x = x;
-			__current_position_y = y;
-			__privious_position_x = x;
-			__privious_position_y = y;			
+			__current_position_x = (float)x;
+			__current_position_y = (float)y;
+			__privious_position_x = (float)x;
+			__privious_position_y = (float)y;			
 		}
 	}
 

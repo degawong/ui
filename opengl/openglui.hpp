@@ -42,15 +42,13 @@ namespace harpocrates {
 		void set_cursor_callback(GLFWcursorenterfun callback);
 		void set_size_callback(GLFWframebuffersizefun callback);
 	private:
-		int __width;
-		int __height;
 		GLFWwindow* __window;
 	};
 
 	class Camera : public SingletonPattern<Camera> {
 		// if the the window needs multi cameras, we can
 		// use the interger template
-		Camera(int width, int height, float fov = 50.0f);
+		Camera(int width = 0, int height = 0, float fov = 50.0f);
 	public:
 		~Camera() = default;
 	public:

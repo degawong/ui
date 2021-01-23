@@ -32,39 +32,48 @@ namespace harpocrates {
 	};
 
 	void OpenGL::clear(
+		unsigned int mask,
 		float r,
 		float g,
 		float b,
 		float a
 	) {
 		glClearColor(r, g, b, a);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(mask);
 	}
 
 	Texture::Texture() {
 		glEnable(GL_TEXTURE_2D);
-		glGenTextures(1, &__id);
 	}
 
 	Texture::~Texture() {
-		glDeleteTextures(1, &__id);
+		for (auto ref : __id) {
+			glDeleteTextures(1, &ref);
+		}
 	}
 
-	unsigned int Texture::get_id() {
-		return __id;
-	}
-
-	int Texture::bind() {
-		glBindTexture(GL_TEXTURE_2D, __id);
+	int Texture::gen_texture() {
+		unsigned int index = 0;
+		glGenTextures(1, &index);
+		__id.push_back(index);
 		return 0;
 	}
 
-	int Texture::active(unsigned int texture_index) {
+	unsigned int Texture::get_id(int index) {
+		return __id[index];
+	}
+
+	int Texture::bind(int index) {
+		glBindTexture(GL_TEXTURE_2D, __id[index]);
+		return 0;
+	}
+
+	int Texture::active_texture(unsigned int texture_index) {
 		glActiveTexture(texture_index);
 		return 0;
 	}
 
-	int Texture::apply(int width, int height, bool is_bgr, unsigned char *data) {
+	int Texture::apply(int index, int width, int height, bool is_bgr, unsigned char *data) {
 		/*
 			format : GL_ALPHA, GL_RGB, GL_BGR, GL_RGBA, GL_LUMINANCE, GL_LUMINANCE_ALPHA
 			type : GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT_5_6_5, GL_UNSIGNED_SHORT_4_4_4_4, GL_UNSIGNED_SHORT_5_5_5_1
@@ -80,6 +89,8 @@ namespace harpocrates {
 			GL_UNSIGNED_BYTE,
 			data
 		);
+
+		// need segment
 		glGenerateMipmap(GL_TEXTURE_2D);
 		// set the texture wrapping parameters
 		// set texture wrapping to GL_REPEAT (default wrapping method)
@@ -91,34 +102,116 @@ namespace harpocrates {
 		return 0;
 	}
 
-	Render::Render() {
-		glGenBuffers(1, &__vbo);
-		glGenBuffers(1, &__ebo);
-		glGenVertexArrays(1, &__vao);
-	}
-
 	Render::~Render() {
-		glDeleteBuffers(1, &__vbo);
-		glDeleteBuffers(1, &__ebo);
-		glDeleteVertexArrays(1, &__vao);
+		for (auto ref : __vbo) {
+			glDeleteBuffers(1, &ref);
+		}
+		for (auto ref : __ebo) {
+			glDeleteBuffers(1, &ref);
+		}
+		for (auto ref : __fbo) {
+			glDeleteFramebuffers(1, &ref);
+		}
+		for (auto ref : __vao) {
+			glDeleteVertexArrays(1, &ref);
+		}
 	}
 
-	int Render::set_vao() {
-		glBindVertexArray(__vao);
+	int Render::gen_vao() {
+		unsigned int index = 0;
+		glGenVertexArrays(1, &index);
+		__vao.push_back(index);
 		return 0;
 	}
 
-	int Render::set_vbo(int length, void * data, unsigned int usage) {
+	int Render::bind_vao(int index) {
+		glBindVertexArray(__vao[index]);
+		return 0;
+	}
+
+	int Render::gen_vbo() {
+		unsigned int index = 0;
+		glGenBuffers(1, &index);
+		__vbo.push_back(index);
+		return 0;
+	}
+
+	int Render::bind_vbo(int index, int length, void * data, unsigned int usage) {
 		// usage = GL_STATIC_DRAW
-		glBindBuffer(GL_ARRAY_BUFFER, __vbo);
+		glBindBuffer(GL_ARRAY_BUFFER, __vbo[index]);
 		glBufferData(GL_ARRAY_BUFFER, length, data, usage);
 		return 0;
 	}
 
-	int Render::set_ebo(int length, void * data, unsigned int usage) {
+	int Render::gen_ebo() {
+		unsigned int index = 0;
+		glGenBuffers(1, &index);
+		__ebo.push_back(index);
+		return 0;
+	}
+
+	int Render::bind_ebo(int index, int length, void* data, unsigned int usage) {
 		// usage = GL_STATIC_DRAW
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, __ebo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, __ebo[index]);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, length, data, usage);
+		return 0;
+	}
+
+	int Render::gen_fbo() {
+		unsigned int index = 0;
+		glGenFramebuffers(1, &index);
+		__fbo.push_back(index);
+		return 0;
+	}
+
+	int Render::bind_fbo(int index){
+		glBindFramebuffer(GL_FRAMEBUFFER, __fbo[index]);
+		return 0;
+	}
+
+	int Render::bind_texture_to_fbo(unsigned int id) {
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, id, 0);
+		return 0;
+	}
+
+	int Render::check_frame_buffer_status() {
+		// call when we have created the framebuffer and added all attachments
+		return (int)(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE);
+	}
+
+	int Render::unbind_fbo() {
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		return 0;
+	}
+
+	int Render::gen_cbo() {
+		unsigned int index = 0;
+		glGenTextures(1, &index);
+		__cbo.push_back(index);
+		return 0;
+	}
+
+	int Render::bind_cbo(int index, int width, int height, unsigned int attach_id) {
+		// attach_id = GL_COLOR_ATTACHMENT0
+		glBindTexture(GL_TEXTURE_2D, __cbo[index]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, attach_id, GL_TEXTURE_2D, __cbo[index], 0);
+		return 0;
+	}
+
+	int Render::gen_rbo() {
+		unsigned int index = 0;
+		glGenRenderbuffers(1, &index);
+		__rbo.push_back(index);
+		return 0;
+	}
+
+	int Render::bind_rbo(int index, int width, int height, unsigned int attach_id) {
+		glBindRenderbuffer(GL_RENDERBUFFER, __rbo[index]);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, __rbo[index]);
 		return 0;
 	}
 
@@ -146,16 +239,22 @@ namespace harpocrates {
 		return 0;
 	}
 
-	Shader::Shader() {
-		__id = glCreateProgram();
-	}
-
 	Shader::~Shader() {
-		glDeleteProgram(__id);
+		for (auto ref : __id) {
+			glDeleteProgram(ref);
+		}
 	}
 
-	void Shader::use() {
-		glUseProgram(__id);
+	int Shader::gen_shader() {
+		unsigned int index = 0;
+		index = glCreateProgram();
+		__id.push_back(index);
+		return 0;
+	}
+
+	int Shader::use(int index) {
+		glUseProgram(__id[index]);
+		return 0;
 	}
 
 	int Shader::attach(int index) {
@@ -189,10 +288,10 @@ namespace harpocrates {
 			glGetShaderiv(fragment, GL_COMPILE_STATUS, &status);
 			if (status == GL_FALSE) { res = 1; break; }
 			// attach
-			glAttachShader(__id, vertex);
-			glAttachShader(__id, fragment);
-			glLinkProgram(__id);
-			glGetProgramiv(__id, GL_LINK_STATUS, &status);
+			glAttachShader(__id[index], vertex);
+			glAttachShader(__id[index], fragment);
+			glLinkProgram(__id[index]);
+			glGetProgramiv(__id[index], GL_LINK_STATUS, &status);
 			if (status == GL_FALSE) { res = 1; break; }
 		} while (0);
 		glDeleteShader(vertex);
@@ -202,33 +301,34 @@ namespace harpocrates {
 		return res;
 	}
 
-	void Shader::add_shader(std::string vertex_path, std::string fragment_path) {
+	int Shader::add_shader(std::string vertex_path, std::string fragment_path) {
 		__vertex_path.push_back(vertex_path);
 		__fragment_path.push_back(fragment_path);
+		return 0;
 	}
 
-	void Shader::set_float(std::string name, float data) {
-		glUniform1f(glGetUniformLocation(__id, name.c_str()), data);
+	void Shader::set_float(int index, std::string name, float data) {
+		glUniform1f(glGetUniformLocation(__id[index], name.c_str()), data);
 	}
 
-	void Shader::set_boolean(std::string name, bool data) {
-		glUniform1i(glGetUniformLocation(__id, name.c_str()), (int)data);
+	void Shader::set_boolean(int index, std::string name, bool data) {
+		glUniform1i(glGetUniformLocation(__id[index], name.c_str()), (int)data);
 	}
 
-	void Shader::set_interger(std::string name, int data) {
-		glUniform1i(glGetUniformLocation(__id, name.c_str()), data);
+	void Shader::set_interger(int index, std::string name, int data) {
+		glUniform1i(glGetUniformLocation(__id[index], name.c_str()), data);
 	}
 
-	void Shader::set_matrix2(std::string name, int count, const float * data) {
-		glUniformMatrix2fv(glGetUniformLocation(__id, name.c_str()), count, false, data);
+	void Shader::set_matrix2(int index, std::string name, int count, const float * data) {
+		glUniformMatrix2fv(glGetUniformLocation(__id[index], name.c_str()), count, false, data);
 	}
 
-	void Shader::set_matrix3(std::string name, int count, const float * data) {
-		glUniformMatrix3fv(glGetUniformLocation(__id, name.c_str()), count, false, data);
+	void Shader::set_matrix3(int index, std::string name, int count, const float * data) {
+		glUniformMatrix3fv(glGetUniformLocation(__id[index], name.c_str()), count, false, data);
 	}
 
-	void Shader::set_matrix4(std::string name, int count, const float * data) {
-		glUniformMatrix4fv(glGetUniformLocation(__id, name.c_str()), count, false, data);
+	void Shader::set_matrix4(int index, std::string name, int count, const float * data) {
+		glUniformMatrix4fv(glGetUniformLocation(__id[index], name.c_str()), count, false, data);
 	}
 
 }

@@ -44,7 +44,7 @@ namespace harpocrates {
 		template<typename _iter_type = std::filesystem::directory_iterator>
 		std::vector<std::string> walk_path(
 			const std::string directory,
-			const std::string parameter = ".*\.(bmp|jpg|png)$") {
+			const std::string parameter = ".*\.(bmp|BMP|jpg|JPG|png|PNG)$") {
 			if (return_code::success != __parse_path(directory)) {
 				return std::vector<std::string>();
 			}

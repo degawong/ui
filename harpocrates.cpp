@@ -7,6 +7,9 @@
  * @FilePath: \harpocrates\harpocrates.cpp
  */
 
+// remove command line window
+//#pragma comment(linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" )
+
 #include <regex>
 #include <thread>
 #include <fstream>
@@ -51,48 +54,42 @@ float vertices[] = {
 	-1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f 
 };
 
-auto forward_thread() {
-	// input your own path
-	auto path = std::string();
-	auto image_list = harpocrates::PathWalker::get_instance()->walk_path(path, ".*\.(bmp|BMP|jpg|JPG|png|PNG)");
-	auto algorithm = Algorithm();
-	for (auto &ref : image_list) {
-		algorithm.apply();
-	}
-}
-
 int main() {
 
-	auto alpha = new unsigned char[3 * 256 * 256]{ 0 };
-	auto image = new unsigned char[3 * 256 * 256]{ 0 };
+	auto data = new unsigned char[4 * width * height]{ 0 };
+	defer(delete[] data);
+	auto alpha = new unsigned char[3 * width * height]{ 0 };
+	defer(delete[] alpha);
+	auto image = new unsigned char[3 * width * height]{ 0 };
+	defer(delete[] image);
 
-	std::memset(alpha, 0, 3 * 256 * 256);
-	std::memset(image, 255, 3 * 256 * 256);
+	std::memset(alpha, 0, 3 * width * height);
+	std::memset(image, 255, 3 * width * height);
 
 	auto camera = Camera::get_instance(width, height, 50.0f);
 
 	auto key = [](GLFWwindow* window, int key, int scancode, int action, int mods) {
-		auto camera = Camera::get_instance(0, 0, 0);
+		auto camera = Camera::get_instance();
 		camera->key_callback(window);
 	};
 
 	auto size = [](GLFWwindow* window, int width, int height) {
-		auto camera = Camera::get_instance(0, 0, 0);
+		auto camera = Camera::get_instance();
 		camera->resize_callback(width, height);
 	};
 
 	auto scroll = [](GLFWwindow* window, double x, double y) {
-		auto camera = Camera::get_instance(0, 0, 0);
+		auto camera = Camera::get_instance();
 		camera->scroll_callback(y);
 	};
 
 	auto cursor = [](GLFWwindow* window, double x, double y) {
-		auto camera = Camera::get_instance(0, 0, 0);
+		auto camera = Camera::get_instance();
 		camera->cursor_callback(window, x, y);
 	};
 
 	auto mouse = [](GLFWwindow* window, int button, int action, int mode) {
-		auto camera = Camera::get_instance(0, 0, 0);
+		auto camera = Camera::get_instance();
 		camera->mouse_callback(window, button, action, mode);
 	};
 
@@ -110,64 +107,91 @@ int main() {
 	Glad().apply();
 
 	auto shader = Shader();
+	shader.gen_shader();
 	shader.add_shader(vertex_shader_path, fragment_shader_path);
 	shader.attach(0);
 
 	auto render = Render();
-	render.set_vao();
-	render.set_vbo(32 * 4, vertices, GL_STATIC_DRAW);
-	render.set_ebo(sizeof(indices), indices, GL_STATIC_DRAW);
+	render.gen_vao();
+	render.bind_vao(0);
+	render.gen_vbo();
+	render.bind_vbo(0, 32 * 4, vertices, GL_STATIC_DRAW);
+	render.gen_ebo();
+	render.bind_ebo(0, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	render.set_attribution(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	render.set_attribution(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	render.set_attribution(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 
-	auto texture_1 = Texture();
-	texture_1.bind();
-	texture_1.apply(256, 256, false, alpha);
+	auto texture = Texture();
+	texture.gen_texture();
+	texture.bind(0);
+	texture.apply(0, width, height, false, alpha);
 
-	auto texture_2 = Texture();
-	texture_2.bind();
-	texture_2.apply(256, 256, false, image);
+	texture.gen_texture();
+	texture.bind(1);
+	texture.apply(1, width, height, false, image);
 
-	shader.use();
+	shader.use(0);
 
-	shader.set_interger("texture_1", 0);
-	shader.set_interger("texture_2", 1);
+	shader.set_interger(0, "texture_1", 0);
+	shader.set_interger(0, "texture_2", 1);
 
-	auto pt = packaged_task<void()>{ forward_thread };
-	auto f = pt.get_future();
-	auto t = thread(std::move(pt));
-	t.detach();
+	render.gen_fbo();
+	render.bind_fbo(0);
+	render.gen_rbo();
+	render.bind_rbo(0, width, height, 0);
+
+	texture.gen_texture();
+	texture.bind(2);
+	texture.apply(2, width, height, true, nullptr);
+
+	render.bind_texture_to_fbo(texture.get_id(2));
+	render.unbind_fbo();
+
+	thread(std::move(packaged_task<void()>{
+		[&]() {
+			auto path = std::string();
+			auto image_list = PathWalker::get_instance()->walk_path(path);
+			auto algorithm = Algorithm();
+			for (auto& ref : image_list) {
+				algorithm.apply();
+			}
+		}
+	})).detach();
 
 	while (!ui.close_window()) {
-		gl.clear();
-		render.set_vao();
 
-		texture_1.active(GL_TEXTURE0);
-		texture_1.bind();
+		render.bind_fbo(0);
+		gl.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, 0.f, 1.f, 1.f, 1.f);
+		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		render.unbind_fbo();
 
-		texture_2.active(GL_TEXTURE1);
-		texture_2.bind();
+		gl.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		render.bind_vao(0);
 
-		shader.set_float("weight", float(camera->swap()));
-		shader.use();
+		texture.active_texture(GL_TEXTURE0);
+		texture.bind(0);
+
+		texture.active_texture(GL_TEXTURE1);
+		texture.bind(1);
+
+		shader.set_float(0, "weight", float(camera->swap()));
+		shader.use(0);
 
 		// projection
 		auto projection = camera->get_projection();
-		shader.set_matrix4("projection", 1, &projection[0][0]);
+		shader.set_matrix4(0, "projection", 1, &projection[0][0]);
 		// camera/view transformation
 		auto view = camera->get_view();
-		shader.set_matrix4("view", 1, &view[0][0]);
+		shader.set_matrix4(0, "view", 1, &view[0][0]);
 		// model
 		auto model = camera->get_model();
-		shader.set_matrix4("model", 1, &model[0][0]);
+		shader.set_matrix4(0, "model", 1, &model[0][0]);
         
 		render.rending(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
 		ui.loop();
     }
-
-	delete[] alpha;
-	delete[] image;
 	return 0;
 }
