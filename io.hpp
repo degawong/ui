@@ -11,8 +11,6 @@
 #include <string>
 
 namespace harpocrates {
-	struct IO {
-		void imwrite(int width, int height, int channel, unsigned char * data, std::string name);
-		void imwrite(int width, int height, int channel, int stride, unsigned char * data, std::string name);
-	};
+	void imread(std::string path, int& width, int& height, int& channel, unsigned char*& data);
+	void imwrite(int width, int height, int channel, int stride, unsigned char* data, std::string path);
 }

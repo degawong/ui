@@ -16,6 +16,7 @@
 
 namespace harpocrates {
 	using namespace std;
+	const int header_size = 54;
 	const char image_info[] = {
 		0x42, 0x4D, 0x36, 0x00, 0x24, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x36, 0x00, 0x00, 0x00, 0x28, 0x00,
@@ -25,37 +26,61 @@ namespace harpocrates {
 		0x00, 0x00, 0xC4, 0x0E, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 	};
-	// not work well
-	void IO::imwrite(int width, int height, int channel, unsigned char * data, std::string name) {
+	// https://blog.csdn.net/yyfzy/article/details/785945
+	// https://stackoverflow.com/questions/9296059/read-pixel-value-in-bmp-file
+	void imread(std::string path, int& width, int& height, int& channel, unsigned char*& data) {
+		auto in = ifstream();
+		auto buffer = (char *)nullptr;
+		do {
+			in.open(path, ios::in);
+			if (!in) break;
+			in.seekg(0, ios::end);
+			auto length = in.tellg();
+			in.seekg(0, ios::beg);
+			buffer = new char[length] {0};
+			in.read(buffer, length);
+			in.close();
+			width = *(int*)&(buffer[0x12]);
+			height = *(int*)&(buffer[0x16]);
+			channel = (*(int*)&(buffer[0x22])) / (width * height);
+			auto size = channel * width * height;
+			data = new unsigned char[size] {0};
+			if (data == nullptr) break;
+			for (int i = 0; i < height; ++i) {
+				for (int j = 0; j < width; ++j) {
+					for (int k = 0; k < channel; ++k) {
+						data[(height - 1 - i) * channel * width + (j) * channel + k] = buffer[header_size + i * channel * width + j * channel + k];
+					}
+				}
+			}
+		} while (0);
+		delete[] buffer;
+	}
+	// recommand to this function
+	void imwrite(int width, int height, int channel, int stride, unsigned char* data, std::string path) {
 		auto out = ofstream();
 		auto buffer = (char*)nullptr;
-		const int size_of_header = 54;
 		const auto data_size = channel * width * height;
-		auto length = size_of_header + data_size;
+		auto length = header_size + data_size;
 		do {
-			out.open(name, ios::out);
+			out.open(path, ios::out);
 			buffer = new char[length] {0};
 			if (buffer == nullptr) { break; }
-			for (int i = 0; i < 54; i++) buffer[i] = image_info[i];
+			for (int i = 0; i < header_size; ++i) buffer[i] = (char)image_info[i];
 			*(int*)&(buffer[0x12]) = width;
 			*(int*)&(buffer[0x16]) = height;
 			*(int*)&(buffer[0x22]) = channel * width * height;
-			std::copy((char*)data, (char*)(data + data_size), buffer + size_of_header);
+			// std::copy((char*)data, ((char*)(data) + data_size), buffer + header_size);
+			for (int i = 0; i < height; ++i) {
+				for (int j = 0; j < width; ++j) {
+					for (int k = 0; k < channel; ++k) {
+						buffer[header_size + (height - 1 - i) * channel * width + (j) * channel + k] = data[i * stride + j * channel + k];
+					}
+				}
+			}
 			out.write(buffer, length);
+			out.close();
 		} while (false);
-		out.close();
 		delete[] buffer;
-	}
-	
-	void IO::imwrite(int width, int height, int channel, int stride, unsigned char * data, std::string name) {
-        //char * buffer = new char[54 + SCR_WIDTH * SCR_HEIGHT * csize];
-        //for (int i = 0; i < 54; i++) buffer[i] = header[i];
-        //*(int*)&(buffer[0x22]) = SCR_WIDTH * SCR_HEIGHT * csize;
-        //*(int*)&(buffer[0x12]) = SCR_WIDTH;
-        //*(int*)&(buffer[0x16]) = SCR_HEIGHT;
-        //glReadPixels(0, 0, SCR_WIDTH, SCR_HEIGHT, GL_BGR, GL_UNSIGNED_BYTE, buffer + 54);
-        //FILE * file = fopen("screenshot.bmp", "wb");
-        //fwrite(buffer, 54 + SCR_WIDTH * SCR_HEIGHT * csize, 1, file);
-        //fclose(file);
 	}
 }
