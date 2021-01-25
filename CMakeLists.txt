@@ -20,6 +20,7 @@ set(
 	glm
 	glad
 	glfw
+	freetype
 )
 
 file(
@@ -85,6 +86,7 @@ set_property(
 	glm
 	glad
 	glfw
+	freetype
 	PROPERTY FOLDER "OpenGL"
 )
 
