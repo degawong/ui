@@ -164,16 +164,20 @@ namespace harpocrates {
 	}
 
 	void Camera::cursor_callback(GLFWwindow * window, double x, double y) {
-		if (__left_button_down) {
-			__current_position_x = (float)x;
-			__current_position_y = (float)y;
+		float delta_x = 0.f;
+		float delta_y = 0.f;
+		const float speed = 0.005f;
+		if (__left_button_down == true) {
+			delta_x = (float)x - __current_position_x;
+			delta_y = (float)y - __current_position_y;
+			auto width = 0;
+			auto height = 0;
+			glfwGetWindowSize(window, &width, &height);
+			__camera_position += speed * ((float)__original_height / (float)height) * (delta_y) * __camera_up;
+			__camera_position -= normalize(cross(__camera_front, __camera_up)) * speed * ((float)__original_width / (float)width) * (delta_x);
 		}
-		else {
-			__current_position_x = (float)x;
-			__current_position_y = (float)y;
-			__privious_position_x = (float)x;
-			__privious_position_y = (float)y;			
-		}
+		__current_position_x = (float)x;
+		__current_position_y = (float)y;
 	}
 
 	void Camera::mouse_callback(GLFWwindow * window, int button, int action, int mode) {
@@ -183,11 +187,6 @@ namespace harpocrates {
 		}
 		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) {
 			__left_button_down = false;
-			auto width = 0;
-			auto height = 0;
-			glfwGetWindowSize(window, &width, &height);
-			__camera_position -= speed * ((float)__original_height / (float)height) * (__privious_position_y - __current_position_y) * __camera_up;
-			__camera_position += normalize(cross(__camera_front, __camera_up)) * speed * ((float)__original_width / (float)width) * (__privious_position_x - __current_position_x);
 		}
 	}
 
