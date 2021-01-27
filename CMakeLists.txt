@@ -101,6 +101,15 @@ set_target_properties(
 	"${CMAKE_CURRENT_SOURCE_DIR}/workspace/"
 )
 
+set_Target_Properties(
+	${PROJECT_NAME}
+	PROPERTIES
+	LINK_FLAGS_DEBUG
+	"/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup"
+	LINK_FLAGS_RELEASE
+	"/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup"
+)
+
 # # copy your dll library to workspace
 # add_custom_command(
 	# TARGET ${PROJECT_NAME} POST_BUILD

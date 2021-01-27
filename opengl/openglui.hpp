@@ -36,6 +36,7 @@ namespace harpocrates {
 		int create_window(int width, int height, std::string name);
 	public:
 		void set_key_callback(GLFWkeyfun callback);
+		void set_drop_callback(GLFWdropfun callback);
 		void set_scroll_callback(GLFWscrollfun callback);
 		void set_cursor_callback(GLFWcursorposfun callback);
 		void set_mouse_callback(GLFWmousebuttonfun callback);
@@ -45,6 +46,8 @@ namespace harpocrates {
 		GLFWwindow* __window;
 	};
 
+	//template<typename int = 0>
+	// if i use the template signature, then the function implementation should be in the same file
 	class Camera : public SingletonPattern<Camera> {
 		// if the the window needs multi cameras, we can
 		// use the interger template
@@ -56,6 +59,7 @@ namespace harpocrates {
 		void scroll_callback(int offset);
 		void key_callback(GLFWwindow* window);
 		void resize_callback(int width, int height);
+		void drop_callback(int count, const char** paths);
 		void cursor_callback(GLFWwindow* window, double x, double y);
 		void mouse_callback(GLFWwindow* window, int button, int action, int mode);
 		// TODO : add mouse drag function
@@ -85,7 +89,9 @@ namespace harpocrates {
 	};
 
 	struct CallBacks {
+		// https://www.glfw.org/docs/3.3/input_guide.html
 		// https://www.glfw.org/docs/latest/group__input.html
+		// drop file through path
 		virtual void drop_callback(GLFWwindow* window, int count, const char** paths);
 		virtual void charmods_callback(GLFWwindow* window, unsigned int codepoint, int mods);
 		virtual void character_callback(GLFWwindow* window, unsigned int codepoint);

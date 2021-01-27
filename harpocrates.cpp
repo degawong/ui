@@ -7,9 +7,6 @@
  * @FilePath: \harpocrates\harpocrates.cpp
  */
 
-// remove command line window
-//#pragma comment(linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" )
-
 #include <regex>
 #include <thread>
 #include <fstream>
@@ -68,40 +65,46 @@ int main() {
 
 	auto camera = Camera::get_instance(width, height, 50.0f);
 
-	auto key = [](GLFWwindow* window, int key, int scancode, int action, int mods) {
-		auto camera = Camera::get_instance();
-		camera->key_callback(window);
-	};
-
-	auto size = [](GLFWwindow* window, int width, int height) {
-		auto camera = Camera::get_instance();
-		camera->resize_callback(width, height);
-	};
-
-	auto scroll = [](GLFWwindow* window, double x, double y) {
-		auto camera = Camera::get_instance();
-		camera->scroll_callback(y);
-	};
-
-	auto cursor = [](GLFWwindow* window, double x, double y) {
-		auto camera = Camera::get_instance();
-		camera->cursor_callback(window, x, y);
-	};
-
-	auto mouse = [](GLFWwindow* window, int button, int action, int mode) {
-		auto camera = Camera::get_instance();
-		camera->mouse_callback(window, button, action, mode);
-	};
-
 	auto ui = UI();
 	ui.create_window(width, height, "opengl ui");
 	ui.make_current();
 
-	ui.set_key_callback(key);
-	ui.set_size_callback(size);
-	ui.set_mouse_callback(mouse);
-	ui.set_cursor_callback(cursor);
-	ui.set_scroll_callback(scroll);
+	ui.set_key_callback(
+		[](GLFWwindow* window, int key, int scancode, int action, int mods) {
+			auto camera = Camera::get_instance();
+			camera->key_callback(window);
+		}
+	);
+	ui.set_size_callback(
+		[](GLFWwindow* window, int width, int height) {
+			auto camera = Camera::get_instance();
+			camera->resize_callback(width, height);
+		}
+	);
+	ui.set_mouse_callback(
+		[](GLFWwindow* window, int button, int action, int mode) {
+			auto camera = Camera::get_instance();
+			camera->mouse_callback(window, button, action, mode);
+		}
+	);
+	ui.set_cursor_callback(
+		[](GLFWwindow* window, double x, double y) {
+			auto camera = Camera::get_instance();
+			camera->cursor_callback(window, x, y);
+		}
+	);
+	ui.set_scroll_callback(
+		[](GLFWwindow* window, double x, double y) {
+			auto camera = Camera::get_instance();
+			camera->scroll_callback(y);
+		}
+	);
+	ui.set_drop_callback(
+		[](GLFWwindow* window, int count, const char** paths) {
+			auto camera = Camera::get_instance();
+			camera->drop_callback(count, paths);
+		}
+	);
 
 	auto gl = OpenGL();
 	Glad().apply();

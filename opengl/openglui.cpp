@@ -89,6 +89,10 @@ namespace harpocrates {
 		glfwSetKeyCallback(__window, callback);
 	}
 
+	void UI::set_drop_callback(GLFWdropfun callback) {
+		glfwSetDropCallback(__window, callback);
+	}
+
 	void UI::set_scroll_callback(GLFWscrollfun callback) {
 		// y > 0 ==> up
 		// y < 0 ==> down
@@ -161,27 +165,45 @@ namespace harpocrates {
 
 	void Camera::resize_callback(int width, int height) {
 		glViewport(0, 0, width, height);
+		//auto width = 0;
+		//auto height = 0;
+		//glfwGetWindowSize(window, &width, &height);
+	}
+
+	void Camera::drop_callback(int count, const char** paths) {
+
 	}
 
 	void Camera::cursor_callback(GLFWwindow * window, double x, double y) {
-		float delta_x = 0.f;
-		float delta_y = 0.f;
-		const float speed = 0.005f;
+		// screen coordinates to world coordinates
+		// https://www.codenong.com/24127926/
+		// https://en.wikibooks.org/wiki/OpenGL_Programming/Modern_OpenGL_Tutorial_Arcball
+		// https://stackoverflow.com/questions/45796287/screen-coordinates-to-world-coordinates
 		if (__left_button_down == true) {
-			delta_x = (float)x - __current_position_x;
-			delta_y = (float)y - __current_position_y;
 			auto width = 0;
 			auto height = 0;
 			glfwGetWindowSize(window, &width, &height);
-			__camera_position += speed * ((float)__original_height / (float)height) * (delta_y) * __camera_up;
-			__camera_position -= normalize(cross(__camera_front, __camera_up)) * speed * ((float)__original_width / (float)width) * (delta_x);
+			auto ori = vec3(__current_position_x, height - 1 - __current_position_y, (float)0);
+			auto now = vec3((float)x, (float)(height - 1 - y), (float)0);
+			auto m = get_model();
+			auto v = get_view();
+			auto p = get_projection();
+			auto viewport = vec4(0.0f, 0.0f, (float)width, (float)height);
+			auto ori_world = unProject(ori, v * m, p, viewport);
+			auto now_world = unProject(now, v * m, p, viewport);
+			auto diff = now_world - ori_world;
+			//diff.x = diff.x * width;
+			//diff.y = diff.y * height;
+			__camera_position -= diff;
 		}
 		__current_position_x = (float)x;
 		__current_position_y = (float)y;
 	}
 
 	void Camera::mouse_callback(GLFWwindow * window, int button, int action, int mode) {
-		const float speed = 0.005f;
+		// can also get current mouse cursor
+		//double position_x, position_y;
+		//glfwGetCursorPos(window, &position_x, &position_y);
 		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
 			__left_button_down = true;
 		}
