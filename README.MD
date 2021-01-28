@@ -15,7 +15,7 @@
 
 ### linked library version
 
-|  library   | version/tag |
-| :--------: | :---------: |
-| `freetype` |  `2.10.4`   |
+|  library   | version/tag |                url                |
+| :--------: | :---------: | :-------------------------------: |
+| `freetype` |  `2.10.4`   | https://gitlab.com/rzkn/freetype2 |
 

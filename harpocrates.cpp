@@ -51,6 +51,8 @@ float vertices[] = {
 	-1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f 
 };
 
+// https://stackoverflow.com/questions/25351176/drawing-text-with-opengl-glfw-freetype-produces-white-rectangle-instead-of-g
+
 int main() {
 
 	auto data = new unsigned char[4 * width * height]{ 0 };

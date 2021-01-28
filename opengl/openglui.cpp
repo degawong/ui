@@ -76,6 +76,11 @@ namespace harpocrates {
 		return glfwWindowShouldClose(__window);
 	}
 
+	void UI::window_hint(int hint, int value) {
+		glfwWindowHint(hint, value);
+		// glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
+	}
+
 	int UI::create_window(int width, int height, std::string name) {
 		auto res = 0;
 		do {
@@ -91,6 +96,10 @@ namespace harpocrates {
 
 	void UI::set_drop_callback(GLFWdropfun callback) {
 		glfwSetDropCallback(__window, callback);
+	}
+
+	void UI::set_opacity(float intensity) {
+		glfwSetWindowOpacity(__window, intensity);
 	}
 
 	void UI::set_scroll_callback(GLFWscrollfun callback) {
@@ -113,6 +122,10 @@ namespace harpocrates {
 
 	void UI::set_size_callback(GLFWframebuffersizefun callback) {
 		glfwSetFramebufferSizeCallback(__window, callback);
+	}
+
+	void UI::set_window_position_callback(GLFWwindowposfun callback) {
+		glfwSetWindowPosCallback(__window, callback);
 	}
 
 	Camera::Camera(int width, int height, float fov) {
@@ -171,7 +184,11 @@ namespace harpocrates {
 	}
 
 	void Camera::drop_callback(int count, const char** paths) {
-
+		// do not use reference parameter
+		// after detach operation, we can not access the data ?
+		// the paths is the temporary variable, do noe use it directly
+		// even u use the local variable is still not safe
+		// pass the parameter as a function parameter
 	}
 
 	void Camera::cursor_callback(GLFWwindow * window, double x, double y) {
