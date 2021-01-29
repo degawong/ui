@@ -55,7 +55,7 @@ namespace harpocrates {
 	class Camera : public SingletonPattern<Camera> {
 		// if the the window needs multi cameras, we can
 		// use the interger template
-		Camera(int width = 0, int height = 0, float fov = 50.0f);
+		Camera(int width = 720, int height = 1080, float fov = 50.0f);
 	public:
 		~Camera() = default;
 	public:
@@ -72,22 +72,20 @@ namespace harpocrates {
 		mat4 get_model();
 		mat4x4 get_view();
 		mat4x4 get_projection();
+		void set_position(vec4 position);
 	private:
 		void __reset_martrix();
 	private:
 		bool __swap;
-		float __fov;
-		float __fov_back;
+		vec2 __fov;
 		vec3 __camera_up;
+		vec2 __window_size;
 		vec3 __camera_front;
+		vec3 __drag_position;
+		vec4 __world_position;
 		vec3 __camera_position;
-		int __original_width;
-		int __original_height;
+		vec2 __cursor_position;
 		bool __left_button_down;
-		float __current_position_x;
-		float __current_position_y;
-		float __privious_position_x;
-		float __privious_position_y;
 	private:
 		friend SingletonPattern<Camera>;
 	};
@@ -98,7 +96,7 @@ namespace harpocrates {
 		// https://www.glfw.org/docs/latest/group__input.html
 		// drop file through path
 		
-		virtual void windows_position_callback(GLFWwindow)
+		virtual void windows_position_callback(GLFWwindow);
 		virtual void drop_callback(GLFWwindow* window, int count, const char** paths);
 		virtual void charmods_callback(GLFWwindow* window, unsigned int codepoint, int mods);
 		virtual void character_callback(GLFWwindow* window, unsigned int codepoint);

@@ -129,25 +129,21 @@ namespace harpocrates {
 	}
 
 	Camera::Camera(int width, int height, float fov) {
-		__fov = fov;
 		__swap = false;
-		__fov_back = fov;
-		__original_width = width;
-		__original_height = height;
+		__fov = { fov, fov };
 		__left_button_down = false;
-		__current_position_x = 0;
-		__current_position_y = 0;
-		__privious_position_x = 0;
-		__privious_position_y = 0;
+		__drag_position = vec3{ 0.f };
+		__cursor_position = vec2{ 0.f };
+		__window_size = { width, height };
 		__camera_up = vec3(0.0f, 1.0f, 0.0f);
 		__camera_front = vec3(0.0f, 0.0f, -1.0f);
 		__camera_position = vec3(0.0f, 0.0f, 5.0f);
 	}
 
 	void Camera::scroll_callback(int offset) {
-		__fov -= (float)offset;
-		if (__fov < 0) __fov = 0;
-		if (__fov > 90) __fov = 90;
+		__fov[0] -= (float)offset;
+		if (__fov[0] < 0.f) __fov[0] = 0.f;
+		if (__fov[0] > 90.f) __fov[0] = 90.f;
 	}
 
 	void Camera::key_callback(GLFWwindow * window) {
@@ -178,9 +174,7 @@ namespace harpocrates {
 
 	void Camera::resize_callback(int width, int height) {
 		glViewport(0, 0, width, height);
-		//auto width = 0;
-		//auto height = 0;
-		//glfwGetWindowSize(window, &width, &height);
+		__window_size = { width, height };
 	}
 
 	void Camera::drop_callback(int count, const char** paths) {
@@ -194,27 +188,31 @@ namespace harpocrates {
 	void Camera::cursor_callback(GLFWwindow * window, double x, double y) {
 		// screen coordinates to world coordinates
 		// https://www.codenong.com/24127926/
+		// https://www.bfilipek.com/2012/06/select-mouse-opengl.html#code
+		// https://www.bfilipek.com/2012/06/select-mouse-opengl.html#drag
+		// http://www.opengl-tutorial.org/beginners-tutorials/tutorial-6-keyboard-and-mouse/
 		// https://en.wikibooks.org/wiki/OpenGL_Programming/Modern_OpenGL_Tutorial_Arcball
+		// https://gamedev.stackexchange.com/questions/77381/opengl-have-object-follow-mouse
 		// https://stackoverflow.com/questions/45796287/screen-coordinates-to-world-coordinates
+		// https://itqna.net/questions/17485/how-move-rotate-or-scale-object-its-local-axis-opengl		
 		if (__left_button_down == true) {
-			auto width = 0;
-			auto height = 0;
-			glfwGetWindowSize(window, &width, &height);
-			auto ori = vec3(__current_position_x, height - 1 - __current_position_y, (float)0);
-			auto now = vec3((float)x, (float)(height - 1 - y), (float)0);
+			//auto lt_window = vec3(0.f, 0.f, 0.f);
+			//auto rb_window = vec3(__window_size.x - 1.f, __window_size.y - 1.f, (float)0);
 			auto m = get_model();
 			auto v = get_view();
 			auto p = get_projection();
-			auto viewport = vec4(0.0f, 0.0f, (float)width, (float)height);
-			auto ori_world = unProject(ori, v * m, p, viewport);
-			auto now_world = unProject(now, v * m, p, viewport);
-			auto diff = now_world - ori_world;
-			//diff.x = diff.x * width;
-			//diff.y = diff.y * height;
-			__camera_position -= diff;
+			auto viewport = vec4(0.0f, 0.0f, __window_size.x, __window_size.y);
+			//auto lt_world = unProject(lt_window, v * m, p, viewport);
+			//auto rb_world = unProject(rb_window, v * m, p, viewport);
+			auto lt_screen = project({ __world_position.x, __world_position.y, 0 }, v * m, p, viewport);
+			auto rb_screen = project({ __world_position.z, __world_position.w, 0 }, v * m, p, viewport);
+			__drag_position += vec3 { vec3 { vec2 { x, y } - __cursor_position, 0 } * vec3 {
+				fabs(__world_position.x - __world_position.z) / fabs(lt_screen.x - rb_screen.x),
+				-fabs(__world_position.y - __world_position.w) / fabs(lt_screen.y - rb_screen.y),
+				1.0f
+			}};
 		}
-		__current_position_x = (float)x;
-		__current_position_y = (float)y;
+		__cursor_position = { x, y };
 	}
 
 	void Camera::mouse_callback(GLFWwindow * window, int button, int action, int mode) {
@@ -238,17 +236,22 @@ namespace harpocrates {
 	}
 
 	mat4 Camera::get_model() {
-		return mat4(1.0f);
+		return translate(mat4(1.0f), __drag_position);
 	}
 
 	mat4x4 Camera::get_projection() {
-		return perspective(radians(__fov), (float)__original_width / (float)__original_height, 0.1f, 100.0f);
+		return perspective(radians(__fov[0]), __window_size.x / __window_size.y, 0.1f, 100.0f);
+	}
+
+	void Camera::set_position(vec4 position) {
+		__world_position = position;
 	}
 
 	void Camera::__reset_martrix() {
 		__swap = false;
-		__fov = __fov_back;
+		__fov[0] = __fov[1];
 		__left_button_down = false;
+		__drag_position = vec3{ 0.f };
 		__camera_up = vec3(0.0f, 1.0f, 0.0f);
 		__camera_front = vec3(0.0f, 0.0f, -1.0f);
 		__camera_position = vec3(0.0f, 0.0f, 5.0f);

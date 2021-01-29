@@ -66,6 +66,7 @@ int main() {
 	std::memset(image, 255, 3 * width * height);
 
 	auto camera = Camera::get_instance(width, height, 50.0f);
+	camera->set_position({ -1, 1, 1, -1 });
 
 	auto ui = UI();
 	ui.create_window(width, height, "opengl ui");
@@ -187,16 +188,17 @@ int main() {
 		// projection
 		auto projection = camera->get_projection();
 		shader.set_matrix4(0, "projection", 1, &projection[0][0]);
-		// camera/view transformation
+		// camera view transformation
 		auto view = camera->get_view();
 		shader.set_matrix4(0, "view", 1, &view[0][0]);
 		// model
 		auto model = camera->get_model();
 		shader.set_matrix4(0, "model", 1, &model[0][0]);
-        
+
 		render.rending(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 		ui.loop();
-    }
+	}
 	return 0;
 }
+ 
