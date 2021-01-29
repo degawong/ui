@@ -187,13 +187,13 @@ int main() {
 
 		// projection
 		auto projection = camera->get_projection();
-		shader.set_matrix4(0, "projection", 1, &projection[0][0]);
-		// camera view transformation
+		shader.set_matrix4(0, "projection", 1, value_ptr(projection));
+		// camera/view transformation
 		auto view = camera->get_view();
-		shader.set_matrix4(0, "view", 1, &view[0][0]);
+		shader.set_matrix4(0, "view", 1, value_ptr(view));
 		// model
 		auto model = camera->get_model();
-		shader.set_matrix4(0, "model", 1, &model[0][0]);
+		shader.set_matrix4(0, "model", 1, value_ptr(model));
 
 		render.rending(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
