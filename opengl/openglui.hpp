@@ -81,7 +81,6 @@ namespace harpocrates {
 		vec3 __camera_up;
 		vec2 __window_size;
 		vec3 __camera_front;
-		vec3 __drag_position;
 		vec4 __world_position;
 		vec3 __camera_position;
 		vec2 __cursor_position;

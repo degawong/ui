@@ -132,7 +132,6 @@ namespace harpocrates {
 		__swap = false;
 		__fov = { fov, fov };
 		__left_button_down = false;
-		__drag_position = vec3{ 0.f };
 		__cursor_position = vec2{ 0.f };
 		__window_size = { width, height };
 		__camera_up = vec3(0.0f, 1.0f, 0.0f);
@@ -206,7 +205,7 @@ namespace harpocrates {
 			//auto rb_world = unProject(rb_window, v * m, p, viewport);
 			auto lt_screen = project({ __world_position.x, __world_position.y, 0 }, v * m, p, viewport);
 			auto rb_screen = project({ __world_position.z, __world_position.w, 0 }, v * m, p, viewport);
-			__drag_position += vec3 { vec3 { vec2 { x, y } - __cursor_position, 0 } * vec3 {
+			__camera_position -= vec3 { vec3 { vec2 { x, y } - __cursor_position, 0 } * vec3 {
 				fabs(__world_position.x - __world_position.z) / fabs(lt_screen.x - rb_screen.x),
 				-fabs(__world_position.y - __world_position.w) / fabs(lt_screen.y - rb_screen.y),
 				1.0f
@@ -236,7 +235,7 @@ namespace harpocrates {
 	}
 
 	mat4 Camera::get_model() {
-		return translate(mat4(1.0f), __drag_position);
+		return mat4(1.0f);
 	}
 
 	mat4x4 Camera::get_projection() {
@@ -251,7 +250,6 @@ namespace harpocrates {
 		__swap = false;
 		__fov[0] = __fov[1];
 		__left_button_down = false;
-		__drag_position = vec3{ 0.f };
 		__camera_up = vec3(0.0f, 1.0f, 0.0f);
 		__camera_front = vec3(0.0f, 0.0f, -1.0f);
 		__camera_position = vec3(0.0f, 0.0f, 5.0f);
