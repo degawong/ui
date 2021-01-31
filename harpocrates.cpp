@@ -23,11 +23,13 @@
 #include <scope_guard.hpp>
 #include <scoped_allocator>
 
+#include <stb_image_aug.h>
+
 #include <io.hpp>
 #include <opengl/opengl.hpp>
 #include <opengl/openglui.hpp>
 
-#include <algorithm/algorithm.hpp>
+#include <algorithm.h>
 
 using namespace glm;
 using namespace std;
@@ -55,8 +57,11 @@ float vertices[] = {
 
 int main() {
 
-	auto data = new unsigned char[4 * width * height]{ 0 };
-	defer(delete[] data);
+	//auto data = new unsigned char[4 * width * height]{ 0 };
+	//defer(delete[] data);
+	auto eye = image();
+	eye.imread("eye.bmp");
+
 	auto alpha = new unsigned char[3 * width * height]{ 0 };
 	defer(delete[] alpha);
 	auto image = new unsigned char[3 * width * height]{ 0 };
@@ -170,7 +175,8 @@ int main() {
 
 		render.bind_fbo(0);
 		gl.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, 0.f, 1.f, 1.f, 1.f);
-		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, eye.get_data());
+		stbi_write_bmp("fbo.bmp", width, height, 3, eye.get_data());
 		render.unbind_fbo();
 
 		gl.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

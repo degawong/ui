@@ -12,5 +12,9 @@ add_subdirectory(
 )
 
 add_subdirectory(
+	soil
+)
+
+add_subdirectory(
 	freetype
 )

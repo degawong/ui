@@ -8,9 +8,12 @@
  */
 #pragma once
 
+#include <regex>
 #include <string>
 #include <fstream>
 #include <sstream>
+
+#include <stb_image_aug.h>
 
 #include <io.hpp>
 
@@ -82,5 +85,43 @@ namespace harpocrates {
 			out.close();
 		} while (false);
 		delete[] buffer;
+	}
+
+	image::image() {
+		__data = nullptr;
+
+	}
+	image::~image() {
+		stbi_image_free(__data);
+	}
+	int image::get_width() const {
+		return __width;
+	}
+
+	int image::get_height() const {
+		return __height;
+	}
+
+	unsigned char* image::get_data() const {
+		return __data;
+	}
+
+	int image::imread(std::string path) {
+		auto res = 0;
+		do {
+			if (__data != nullptr) stbi_image_free(__data);
+			__data = nullptr;
+			__data = stbi_load(path.c_str(), &__width, &__height, &__channel, 0);
+			if (__data == nullptr) { res = 1; break; }
+		} while (false);
+		return res;
+	}
+	int image::imwrite(std::string path) {
+		auto res = 0;
+		do {
+			res = stbi_write_bmp(path.c_str(), __width, __height, __channel, __data);
+			if (res == 0) { res = 1; break; }
+		} while (false);
+		return res;
 	}
 }

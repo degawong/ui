@@ -15,11 +15,16 @@ add_subdirectory(
 	3rdparty
 )
 
+add_subdirectory(
+	algorithm
+)
+
 set(
 	opengl_library
 	glm
 	glad
 	glfw
+	soil
 	freetype
 )
 
@@ -36,11 +41,10 @@ file(
 	${CMAKE_CURRENT_SOURCE_DIR}/shader/*.glsl
 )
 
-file(
-	GLOB_RECURSE
-	algorithm_file
-	${CMAKE_CURRENT_SOURCE_DIR}/algorithm/*.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/algorithm/*.hpp
+source_group(
+	"glsl"
+	FILES
+	${shader_file}
 )
 
 file(
@@ -48,8 +52,6 @@ file(
 	dll_library
 	${CMAKE_CURRENT_SOURCE_DIR}/ui/dll/*.dll
 )
-
-message(STATUS "${algorithm_file}")
 
 add_executable(
 	${PROJECT_NAME}
@@ -62,7 +64,6 @@ add_executable(
 	path_walker.hpp
 	scope_guard.hpp
 	thread_pool.hpp
-	${algorithm_file}
 	singleton_pattern.hpp
 )
 
@@ -74,6 +75,7 @@ target_include_directories(
 
 target_link_libraries(
 	${PROJECT_NAME}
+	algorithm
 	${opengl_library}
 )
 set_property(
@@ -83,10 +85,13 @@ set_property(
 
 set_property(
 	TARGET
-	glm
-	glad
-	glfw
-	freetype
+	algorithm
+	PROPERTY FOLDER "algorithm"
+)
+
+set_property(
+	TARGET
+	${opengl_library}
 	PROPERTY FOLDER "OpenGL"
 )
 

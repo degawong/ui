@@ -8,9 +8,29 @@
  */
 #pragma once
 
+#include <map>
 #include <string>
 
 namespace harpocrates {
-	void imread(std::string path, int& width, int& height, int& channel, unsigned char*& data);
-	void imwrite(int width, int height, int channel, int stride, unsigned char* data, std::string path);
+	class image {
+	public:
+		image();
+		~image();
+	public:
+		int get_width() const;
+		int get_height() const;
+		unsigned char* get_data() const;
+		int imread(std::string path);
+		int imwrite(std::string path);
+	private:
+		int __width;
+		int __height;
+		int __channel;
+		unsigned char* __data;
+		//std::map<std::string, std::function<int (const char*, int, int, int, void*)>> __write_list;
+		//std::map<std::string, std::function<unsigned char* (const char*, int*, int*, int*, int)>> __read_list;
+	};
+
+	//void imread(std::string path, int& width, int& height, int& channel, unsigned char*& data);
+	//void imwrite(int width, int height, int channel, int stride, unsigned char* data, std::string path);
 }
