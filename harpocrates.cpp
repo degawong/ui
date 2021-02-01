@@ -69,17 +69,16 @@ int main() {
 
 	auto camera = Camera::get_instance(width, height, 50.0f);
 
+	auto ratio = foreground.get_height() / (static_cast<float>(foreground.get_width()));
 	camera->set_position({
 		-1.0f,
-		foreground.get_height() / (static_cast<float>(foreground.get_width())),
+		ratio,
 		1,
-		-foreground.get_height() / (static_cast<float>(foreground.get_width())) }
-	);
+		-ratio
+		});
 
-	vertices[1] = foreground.get_height() / (static_cast<float>(foreground.get_width()));
-	vertices[9] = -foreground.get_height() / (static_cast<float>(foreground.get_width()));
-	vertices[17] = -foreground.get_height() / (static_cast<float>(foreground.get_width()));
-	vertices[25] = foreground.get_height() / (static_cast<float>(foreground.get_width()));
+	vertices[1] = vertices[25] = ratio;
+	vertices[9] = vertices[17] = -ratio;
 
 	auto ui = UI();
 	ui.window_hint(GLFW_TRANSPARENT_FRAMEBUFFER, GL_TRUE);
