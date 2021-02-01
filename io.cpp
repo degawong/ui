@@ -91,15 +91,21 @@ namespace harpocrates {
 		__data = nullptr;
 
 	}
+	
 	image::~image() {
 		stbi_image_free(__data);
 	}
+
 	int image::get_width() const {
 		return __width;
 	}
 
 	int image::get_height() const {
 		return __height;
+	}
+
+	unsigned char* image::get_data() {
+		return __data;
 	}
 
 	unsigned char* image::get_data() const {
@@ -116,11 +122,34 @@ namespace harpocrates {
 		} while (false);
 		return res;
 	}
+
 	int image::imwrite(std::string path) {
 		auto res = 0;
 		do {
 			res = stbi_write_bmp(path.c_str(), __width, __height, __channel, __data);
 			if (res == 0) { res = 1; break; }
+		} while (false);
+		return res;
+	}
+
+	int image::imwrite(std::string path, int width, int height, int channel, unsigned char* data) {
+		auto res = 0;
+		do {
+			res = stbi_write_bmp(path.c_str(), width, height, channel, data);
+			if (res == 0) { res = 1; break; }
+		} while (false);
+		return res;
+	}
+
+	int image::imread(std::string path, int& width, int& height, int& channel, unsigned char*& data) {
+		auto res = 0;
+		do {
+			auto temp = stbi_load(path.c_str(), &width, &height, &channel, 0);
+			if (temp == nullptr) { res = 1; break; }
+			if (data != nullptr) delete[] data;
+			data = new unsigned char[static_cast<int>(channel * height * channel)];
+			if (data == nullptr) { res = 1; break; }
+			copy(temp, temp + static_cast<int>(channel * height * channel), data);
 		} while (false);
 		return res;
 	}

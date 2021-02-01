@@ -3,9 +3,9 @@
 in vec3 vertex_color;
 in vec2 texture_coord;
 
+uniform float weight;
 uniform sampler2D texture_1;
 uniform sampler2D texture_2;
-uniform float weight;
 
 out vec4 color;
 

@@ -21,7 +21,8 @@ namespace harpocrates {
 		OpenGL() = default;
 		~OpenGL() = default;
 	public:
-		void clear(unsigned int mask, float r = 1.f, float g = 1.f, float b = 0.f, float a = 1.f);
+		void clear(unsigned int mask);
+		void clear_color(float r = 1.f, float g = 1.f, float b = 0.f, float a = 1.f);
 	};
 
 	class Shader {

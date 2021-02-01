@@ -38,8 +38,9 @@ using namespace harpocrates;
 const int width = 1280;
 const int height = 720;
 
-const std::string vertex_shader_path = { "../shader/base_vertex.glsl" };
-const std::string fragment_shader_path = { "../shader/base_fragment.glsl" };
+const std::string path { "eye.bmp" };
+const std::string vertex_shader_path { "../shader/base_vertex.glsl" };
+const std::string fragment_shader_path { "../shader/base_fragment.glsl" };
 
 unsigned int indices[] = {
 	0, 1, 2,
@@ -57,23 +58,31 @@ float vertices[] = {
 
 int main() {
 
-	//auto data = new unsigned char[4 * width * height]{ 0 };
-	//defer(delete[] data);
-	auto eye = image();
-	eye.imread("eye.bmp");
+	auto data = new unsigned char[4 * width * height]{ 0 };
+	defer(delete[] data);
 
-	auto alpha = new unsigned char[3 * width * height]{ 0 };
-	defer(delete[] alpha);
-	auto image = new unsigned char[3 * width * height]{ 0 };
-	defer(delete[] image);
+	auto background = image();
+	auto foreground = image();
 
-	std::memset(alpha, 0, 3 * width * height);
-	std::memset(image, 255, 3 * width * height);
+	background.imread(path.c_str());
+	foreground.imread(path.c_str());
 
 	auto camera = Camera::get_instance(width, height, 50.0f);
-	camera->set_position({ -1, 1, 1, -1 });
+
+	camera->set_position({
+		-1.0f,
+		foreground.get_height() / (static_cast<float>(foreground.get_width())),
+		1,
+		-foreground.get_height() / (static_cast<float>(foreground.get_width())) }
+	);
+
+	vertices[1] = foreground.get_height() / (static_cast<float>(foreground.get_width()));
+	vertices[9] = -foreground.get_height() / (static_cast<float>(foreground.get_width()));
+	vertices[17] = -foreground.get_height() / (static_cast<float>(foreground.get_width()));
+	vertices[25] = foreground.get_height() / (static_cast<float>(foreground.get_width()));
 
 	auto ui = UI();
+	ui.window_hint(GLFW_TRANSPARENT_FRAMEBUFFER, GL_TRUE);
 	ui.create_window(width, height, "opengl ui");
 	ui.make_current();
 
@@ -137,25 +146,23 @@ int main() {
 	auto texture = Texture();
 	texture.gen_texture();
 	texture.bind(0);
-	texture.apply(0, width, height, false, alpha);
+	texture.apply(0, foreground.get_width(), foreground.get_height(), false, foreground.get_data());
 
 	texture.gen_texture();
 	texture.bind(1);
-	texture.apply(1, width, height, false, image);
-
-	shader.use(0);
-
-	shader.set_interger(0, "texture_1", 0);
-	shader.set_interger(0, "texture_2", 1);
-
-	render.gen_fbo();
-	render.bind_fbo(0);
-	render.gen_rbo();
-	render.bind_rbo(0, width, height, 0);
+	texture.apply(1, background.get_width(), background.get_height(), false, background.get_data());
 
 	texture.gen_texture();
 	texture.bind(2);
 	texture.apply(2, width, height, true, nullptr);
+
+	shader.use(0);
+	shader.set_interger(0, "texture_1", 0);
+	shader.set_interger(0, "texture_2", 1);
+	render.gen_fbo();
+	render.bind_fbo(0);
+	render.gen_rbo();
+	render.bind_rbo(0, width, height, 0);
 
 	render.bind_texture_to_fbo(texture.get_id(2));
 	render.unbind_fbo();
@@ -174,12 +181,14 @@ int main() {
 	while (!ui.close_window()) {
 
 		render.bind_fbo(0);
-		gl.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, 0.f, 1.f, 1.f, 1.f);
-		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, eye.get_data());
-		stbi_write_bmp("fbo.bmp", width, height, 3, eye.get_data());
+		// render fbo
+		gl.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		//image::imwrite("fbo.bmp", width, height, 3, data);
 		render.unbind_fbo();
 
 		gl.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		gl.clear_color(0, 0, 0, 0);
 		render.bind_vao(0);
 
 		texture.active_texture(GL_TEXTURE0);
@@ -202,6 +211,8 @@ int main() {
 		shader.set_matrix4(0, "model", 1, value_ptr(model));
 
 		render.rending(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		//glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
+		//image::imwrite("screen.bmp", width, height, 3, data);
 
 		ui.loop();
 	}

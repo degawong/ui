@@ -31,15 +31,12 @@ namespace harpocrates {
 		-1.0f, 1.0f, 0.0f, 0.0f, 0.0f      // top left 
 	};
 
-	void OpenGL::clear(
-		unsigned int mask,
-		float r,
-		float g,
-		float b,
-		float a
-	) {
-		glClearColor(r, g, b, a);
+	void OpenGL::clear(unsigned int mask) {
 		glClear(mask);
+	}
+
+	void OpenGL::clear_color(float r, float g, float b, float a) {
+		glClearColor(r, g, b, a);
 	}
 
 	Texture::Texture() {
