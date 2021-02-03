@@ -21,6 +21,11 @@ namespace harpocrates {
 		OpenGL() = default;
 		~OpenGL() = default;
 	public:
+		template<typename _type>
+		int opengl_operation(_type operation) {
+			operation();
+			return 0;
+		}
 		void clear(unsigned int mask);
 		void clear_color(float r = 1.f, float g = 1.f, float b = 0.f, float a = 1.f);
 	};
@@ -57,6 +62,7 @@ namespace harpocrates {
 		int bind(int index);
 		int active_texture(unsigned int texture_index);
 		int apply(int index, int width, int height, bool is_bgr, unsigned char *data);
+		int apply(int index, int width, int height, int inter_format, int format, unsigned char *data);
 	private:
 		std::vector<unsigned int> __id;
 	};

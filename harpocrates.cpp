@@ -75,7 +75,7 @@ int main() {
 		ratio,
 		1,
 		-ratio
-		});
+	});
 
 	vertices[1] = vertices[25] = ratio;
 	vertices[9] = vertices[17] = -ratio;
@@ -122,7 +122,11 @@ int main() {
 		}
 	);
 
-	auto gl = OpenGL();
+	auto opengl = OpenGL();
+	//opengl.opengl_operation([]() {
+	//	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	//});
+
 	Glad().apply();
 
 	auto shader = Shader();
@@ -166,43 +170,50 @@ int main() {
 	render.bind_texture_to_fbo(texture.get_id(2));
 	render.unbind_fbo();
 
-	thread(std::move(packaged_task<void()>{
-		[&]() {
-			auto path = std::string();
-			auto image_list = PathWalker::get_instance()->walk_path(path);
-			auto algorithm = Algorithm();
-			for (auto& ref : image_list) {
-				algorithm.apply();
-			}
+	thread(std::move(packaged_task<void()>{[&]() {
+		auto path = std::string();
+		auto image_list = PathWalker::get_instance()->walk_path(path);
+		auto algorithm = Algorithm();
+		for (auto& ref : image_list) {
+			algorithm.apply();
 		}
-	})).detach();
+	}})).detach();
 
 	while (!ui.close_window()) {
 
 		render.bind_fbo(0);
 		// render fbo
-		gl.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		//image::imwrite("fbo.bmp", width, height, 3, data);
+		opengl.opengl_operation([&]() {
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		});
+		opengl.opengl_operation([&]() {
+			glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			//image::imwrite("fbo.bmp", width, height, 3, data);
+		});
 		render.unbind_fbo();
 
-		gl.clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		gl.clear_color(0, 0, 0, 0);
-		render.bind_vao(0);
+		//GLFWvidmode return_struct;
+		//glfwGetVideoMode(&return_struct);
 
+		//int height = return_struct.Height;
+		opengl.opengl_operation([]() {
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glClearColor(0, 0, 0, 0);
+		});
+
+		render.bind_vao(0);
 		texture.active_texture(GL_TEXTURE0);
 		texture.bind(0);
-
 		texture.active_texture(GL_TEXTURE1);
 		texture.bind(1);
 
+		// weight
 		shader.set_float(0, "weight", float(camera->swap()));
 		shader.use(0);
-
 		// projection
 		auto projection = camera->get_projection();
 		shader.set_matrix4(0, "projection", 1, value_ptr(projection));
-		// camera/view transformation
+		// view
 		auto view = camera->get_view();
 		shader.set_matrix4(0, "view", 1, value_ptr(view));
 		// model
