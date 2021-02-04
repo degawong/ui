@@ -136,6 +136,7 @@ namespace harpocrates {
 		__swap = false;
 		__fov = { fov, fov };
 		__left_button_down = false;
+		__world_position = vec4{ 0.f };
 		__cursor_position = vec2{ 0.f };
 		__window_size = { width, height };
 		__camera_up = vec3(0.0f, 1.0f, 0.0f);
@@ -457,7 +458,8 @@ namespace harpocrates {
 	vec3 Arcball::__to_sphere(vec2 point) {
 		auto sphere = vec3{ 0 };
 		auto ndc = __to_ndc(point);
-		auto square = ndc.x * ndc.x + ndc.y * ndc.y;
+		auto square = dot(ndc, ndc);
+		//auto square = ndc.x * ndc.x + ndc.y * ndc.y;
 		if (square < 1.f) {
 			sphere = {
 				vec3{ point, sqrtf(1.0f - square) }
@@ -465,7 +467,8 @@ namespace harpocrates {
 		}
 		else {
 			sphere = {
-				vec3{ point * (1.0f / sqrtf(square)), 0.f }
+				vec3{ normalize(point), 0.f }
+				//vec3{ point * (1.0f / sqrtf(square)), 0.f }
 			};
 		}
 		return sphere;
@@ -475,24 +478,49 @@ namespace harpocrates {
 	}
 
 	void Arcball::__on_rotate(vec2 start, vec2 end) {
+		// use matrix
+		__use_matrix(start, end);
+
+		// use quaternion
+		__use_quaternion(start, end);
+	}
+
+	void Arcball::__use_matrix(vec2 start, vec2 end) {
+		auto sphere_end = __to_sphere(end);
+		auto sphere_start = __to_sphere(start);
+		auto to_view = inverse(__get_view() * __get_model());
+		sphere_end = vec3{ to_view * vec4{sphere_end, 0.f} };
+		sphere_start = vec3{ to_view * vec4{sphere_start, 0.f} };
+		auto axis = normalize(cross(sphere_start, sphere_end));
+		auto angle = std::acos(dot(sphere_start, sphere_end));
+		__camera_up = __rodrigues_rotation(__camera_up, axis, angle);
+		__camera_front = __rodrigues_rotation(__camera_front, axis, angle);
+		__camera_position = __rodrigues_rotation(__camera_position, axis, angle);
+	}
+
+	void Arcball::__use_quaternion(vec2 start, vec2 end) {
+		// https://zhuanlan.zhihu.com/p/79894982
+		// https://openhome.cc/Gossip/WebGL/Quaternion.html
+		// https://openhome.cc/Gossip/ComputerGraphics/QuaternionsRotate.htm
 		auto sphere_end = __to_sphere(end);
 		auto sphere_start = __to_sphere(start);
 		auto perpendicular = cross(sphere_start, sphere_end);
-		auto length = [](auto vec) {
-			float ret = 0.f;
-			for (auto i = 0; i < vec.length(); ++i) {
-				ret += vec[i] * vec[i];
-			}
-			return ret;
-		};
-		auto square = length(perpendicular);
+		auto square = dot(perpendicular, perpendicular);
 		if (square > std::numeric_limits<float>().epsilon()) {
 			auto quater_value = vec4{ dot(sphere_start, sphere_end), perpendicular };
-			quater_value /= sqrtf(length(quater_value));
-			auto quaternion = quat{ quater_value };
+			auto quaternion = quat{ normalize(quater_value) };
 			auto matrix = quaternion.operator glm::mat<4, 4, float, glm::packed_highp>();
+			// how can i apply quaternion into my __camera_(up|front|position)?
 			//quat orientation = conjugate(toQuat(lookAt(eye, o, up)));
 		}
+	}
+
+	vec3 Arcball::__rodrigues_rotation(vec3 vec, vec3 axis, float angle) {
+		// http://www.euclideanspace.com/maths/geometry/rotations/
+		// https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation
+		// https://stackoverflow.com/questions/4039664/trackball-rotation-in-opengl
+		// https://stackoverflow.com/questions/1875780/how-to-rotate-about-the-center-of-screen-using-quaternions-in-opengl
+		return vec * std::cos(angle) + axis * dot(axis, vec) * (1.0f - std::cos(angle)) + cross(axis, vec) * std::sin(angle);
 	}
 
 }

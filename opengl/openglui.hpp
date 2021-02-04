@@ -105,6 +105,9 @@ namespace harpocrates {
 		virtual vec3 __to_sphere(vec2 point);
 		virtual void __on_drag(vec2 start, vec2 end);
 		virtual void __on_rotate(vec2 start, vec2 end);
+		virtual void __use_matrix(vec2 start, vec2 end);
+		virtual void __use_quaternion(vec2 start, vec2 end);
+		virtual vec3 __rodrigues_rotation(vec3 vec, vec3 axis, float angle);
 	private:
 		bool __swap;
 		vec2 __window_size;
