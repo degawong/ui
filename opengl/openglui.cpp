@@ -25,7 +25,6 @@
 #include "freetype/freetype.h"
 
 #include <opengl/openglui.hpp>
-#include <singleton_pattern.hpp>
 
 namespace harpocrates {
 
@@ -314,6 +313,7 @@ namespace harpocrates {
 	Arcball::Arcball(vec2 size) {
 		__reset();
 		__window_size = size;
+		__window_range = vec4{ 0.f, 0.f, 0.f, 0.f };
 	}
 
 	void Arcball::scroll_callback(int offset) {
@@ -379,6 +379,8 @@ namespace harpocrates {
 		// the paths is the temporary variable, do noe use it directly
 		// even u use the local variable is still not safe
 		// pass the parameter as a function parameter
+		//
+		// https://www.khronos.org/opengl/wiki/Code_Resources
 	}
 
 	void Arcball::cursor_callback(GLFWwindow* window, double x, double y) {
@@ -393,21 +395,7 @@ namespace harpocrates {
 		// https://itqna.net/questions/17485/how-move-rotate-or-scale-object-its-local-axis-opengl		
 		if (__left_button_down == true) {
 			// on move
-			////auto lt_window = vec3(0.f, 0.f, 0.f);
-			////auto rb_window = vec3(__window_size.x - 1.f, __window_size.y - 1.f, (float)0);
-			//auto m = __get_model();
-			//auto v = __get_view();
-			//auto p = __get_projection();
-			//auto viewport = vec4(0.0f, 0.0f, __window_size.x, __window_size.y);
-			////auto lt_world = unProject(lt_window, v * m, p, viewport);
-			////auto rb_world = unProject(rb_window, v * m, p, viewport);
-			//auto lt_screen = project({ __world_position.x, __world_position.y, 0 }, v * m, p, viewport);
-			//auto rb_screen = project({ __world_position.z, __world_position.w, 0 }, v * m, p, viewport);
-			//__camera_position -= vec3 { vec3 { vec2 { x, y } - __cursor_position, 0 } * vec3 {
-			//	fabs(__world_position.x - __world_position.z) / fabs(lt_screen.x - rb_screen.x),
-			//	-fabs(__world_position.y - __world_position.w) / fabs(lt_screen.y - rb_screen.y),
-			//	1.0f
-			//}};
+			__on_translate(__cursor_position, vec2{ x, y });
 		}
 		if (__right_button_down == true) {
 			// on rotate
@@ -447,6 +435,10 @@ namespace harpocrates {
 		return perspective(radians(__camera_fov[0]), __window_size.x / __window_size.y, 0.1f, 100.0f);
 	}
 
+	void Arcball::set_range(vec4 range) {
+		__window_range = range;
+	}
+
 	vec2 Arcball::__to_ndc(vec2 point) {
 		// use all window as reference
 		return vec2 {
@@ -474,10 +466,38 @@ namespace harpocrates {
 		return sphere;
 	}
 
-	void Arcball::__on_drag(vec2 start, vec2 end) {
+	void Arcball::__use_ray(vec2 start, vec2 end) {
+
+	}
+
+	void Arcball::__use_range(vec2 start, vec2 end) {
+		//auto lt_window = vec3(0.f, 0.f, 0.f);
+		//auto rb_window = vec3(__window_size.x - 1.f, __window_size.y - 1.f, (float)0);
+		auto m = __get_model();
+		auto v = __get_view();
+		auto p = __get_projection();
+		auto viewport = vec4(0.0f, 0.0f, __window_size.x, __window_size.y);
+		//auto lt_world = unProject(lt_window, v * m, p, viewport);
+		//auto rb_world = unProject(rb_window, v * m, p, viewport);
+		auto lt_screen = project({ __window_range.x, __window_range.y, 0 }, v * m, p, viewport);
+		auto rb_screen = project({ __window_range.z, __window_range.w, 0 }, v * m, p, viewport);
+		__camera_position -= vec3 { vec3 { end - start, 0 } * vec3 {
+			fabs(__window_range.x - __window_range.z) / fabs(lt_screen.x - rb_screen.x),
+			-fabs(__window_range.y - __window_range.w) / fabs(lt_screen.y - rb_screen.y),
+			1.0f
+		}};
+	}
+
+	void Arcball::__on_translate(vec2 start, vec2 end) {
+		// use ray
+		__use_ray(start, end);
+
+		// use range
+		__use_range(start, end);
 	}
 
 	void Arcball::__on_rotate(vec2 start, vec2 end) {
+		// http://user.xmission.com/~nate/es.html
 		// use matrix
 		__use_matrix(start, end);
 
@@ -502,6 +522,7 @@ namespace harpocrates {
 		// https://zhuanlan.zhihu.com/p/79894982
 		// https://openhome.cc/Gossip/WebGL/Quaternion.html
 		// https://openhome.cc/Gossip/ComputerGraphics/QuaternionsRotate.htm
+		// https://gamedev.stackexchange.com/questions/103502/how-can-i-implement-a-quaternion-camera
 		auto sphere_end = __to_sphere(end);
 		auto sphere_start = __to_sphere(start);
 		auto perpendicular = cross(sphere_start, sphere_end);

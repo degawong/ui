@@ -20,7 +20,7 @@
 //#include "freetype/freetype.h"
 
 #include <opengl/opengl.hpp>
-#include <singleton_pattern.hpp>
+#include <module/singleton_pattern.hpp>
 
 namespace harpocrates {
 	using namespace glm;
@@ -93,24 +93,27 @@ namespace harpocrates {
 		virtual void drop_callback(int count, const char** paths);
 		virtual void cursor_callback(GLFWwindow* window, double x, double y);
 	public:
-		bool swap();
+		virtual bool swap();
 		virtual mat4x4 get_mvp();
+		virtual void set_range(vec4 range);
 	private:
-		//void set_range(vec4 range);
 		virtual void __reset();
 		virtual mat4 __get_model();
 		virtual mat4x4 __get_view();
 		virtual mat4x4 __get_projection();
 		virtual vec2 __to_ndc(vec2 point);
 		virtual vec3 __to_sphere(vec2 point);
-		virtual void __on_drag(vec2 start, vec2 end);
+		virtual void __use_ray(vec2 start, vec2 end);
+		virtual void __use_range(vec2 start, vec2 end);
 		virtual void __on_rotate(vec2 start, vec2 end);
 		virtual void __use_matrix(vec2 start, vec2 end);
+		virtual void __on_translate(vec2 start, vec2 end);
 		virtual void __use_quaternion(vec2 start, vec2 end);
 		virtual vec3 __rodrigues_rotation(vec3 vec, vec3 axis, float angle);
 	private:
 		bool __swap;
 		vec2 __window_size;
+		vec4 __window_range;
 		vec3 __camera_up;
 		vec1 __camera_fov;
 		vec3 __camera_front;
@@ -122,7 +125,7 @@ namespace harpocrates {
 
 	//template<typename int = 0>
 	// if i use the template signature, then the function implementation should be in the same file
-	class Camera : public SingletonPattern<Camera> {
+	class Camera : public singleton_pattern<Camera> {
 		// if the the window needs multi cameras, we can
 		// use the interger template
 		Camera(int width = 720, int height = 1080, float fov = 45.0f);
@@ -155,7 +158,7 @@ namespace harpocrates {
 		vec2 __cursor_position;
 		bool __left_button_down;
 	private:
-		friend SingletonPattern<Camera>;
+		friend singleton_pattern<Camera>;
 	};
 
 	struct CallBacks {

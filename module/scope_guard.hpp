@@ -1,11 +1,12 @@
 /*
  * @Author: your name
- * @Date: 2021-01-08 11:18:06
- * @LastEditTime: 2021-01-08 16:51:41
- * @LastEditors: Please set LastEditors
+ * @Date: 2021-01-25 09:57:21
+ * @LastEditTime: 2021-02-08 14:43:09
+ * @LastEditors: your name
  * @Description: In User Settings Edit
- * @FilePath: \harpocrates\scope_guard.hpp
+ * @FilePath: \harpocrates\module\scope_guard.hpp
  */
+
 #pragma once
 
 namespace harpocrates {

@@ -4,7 +4,7 @@
  * @Date: 2020-04-16 17:17:45
  * @LastEditors: degawong
  * @LastEditTime: 2020-05-12 15:04:30
- * @FilePath: \harpocrates\path_walker.hpp
+ * @FilePath: \module\path_walker.hpp
  */
 #pragma once
 
@@ -22,8 +22,8 @@
 #include <functional>
 #include <condition_variable>
 
-#include <base.h>
-#include <singleton_pattern.hpp>
+#include <module/base.h>
+#include <module/singleton_pattern.hpp>
 
 namespace harpocrates {
 
@@ -35,9 +35,9 @@ namespace harpocrates {
 		}
 	}
 
-	class PathWalker : public SingletonPattern<PathWalker> {
+	class path_walker : public singleton_pattern<path_walker> {
 	public:
-		~PathWalker() {
+		~path_walker() {
 			std::vector<std::string>().swap(__file_list);
 		};
 	public:
@@ -55,7 +55,7 @@ namespace harpocrates {
 			return __get_file_list<_iter_type>();
 		}
 	private:
-		PathWalker() = default;
+		path_walker() = default;
 	private:
 		template<typename _iter_type>
 		auto __get_file_list() {
@@ -87,6 +87,6 @@ namespace harpocrates {
 		std::string __parameter;
 		std::vector<std::string> __file_list;
 	private:
-		friend SingletonPattern<PathWalker>;
+		friend singleton_pattern<path_walker>;
 	};
 }

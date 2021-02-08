@@ -1,10 +1,13 @@
 /*
- * @Description: 
- * @Autor: degawong
- * @Date: 2020-04-15 17:24:12
- * @LastEditors: Please set LastEditors
- * @LastEditTime: 2020-07-23 18:55:55
+ * @Author: your name
+ * @Date: 2021-01-22 17:37:11
+ * @LastEditTime: 2021-02-08 14:43:03
+ * @LastEditors: your name
+ * @Description: In User Settings Edit
+ * @FilePath: \harpocrates\module\base.h
  */
+
+
 #pragma once
 
 #include <string>

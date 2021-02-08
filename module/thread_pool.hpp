@@ -1,11 +1,12 @@
 /*
- * @Description: 
- * @Autor: degawong
- * @Date: 2020-03-23 16:41:29
- * @LastEditors: degawong
- * @LastEditTime: 2020-05-12 15:04:15
- * @FilePath: \harpocrates\thread_pool.hpp
+ * @Author: your name
+ * @Date: 2021-01-22 17:37:11
+ * @LastEditTime: 2021-02-08 14:43:36
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: \harpocrates\module\thread_pool.hpp
  */
+
 #pragma once
 
 #include <deque>
@@ -24,13 +25,13 @@
 #include <singleton_pattern.hpp>
 
 namespace harpocrates {
-	class ThreadPool : public SingletonPattern<ThreadPool> {
+	class thread_pool : public singleton_pattern<thread_pool> {
 	public:
-		~ThreadPool() {
+		~thread_pool() {
 			__stop_task();
 		}
     private:
-        ThreadPool(int thread_num = 8) : __stop(false) {
+        thread_pool(int thread_num = 8) : __stop(false) {
 			__thread_num = (thread_num > 0 ? thread_num : std::thread::hardware_concurrency());
             for (size_t i = 0; i < __thread_num; ++i) {
 				__threads.push_back(std::thread([this] {
@@ -88,7 +89,7 @@ namespace harpocrates {
         std::vector<std::thread> __threads;
 		std::queue<std::function<void()>> __tasks;
 	private:
-		friend SingletonPattern<ThreadPool>;
+		friend singleton_pattern<thread_pool>;
     };
 	
 	// add map && reduce
@@ -99,7 +100,7 @@ namespace harpocrates {
 
 	template<typename  _function, typename _iter_type, typename... _args, size_t _hint = 8>
 	return_code parallel_execution(_iter_type begin, _iter_type end, _function&& function, _args&&... args) {
-		auto tp = ThreadPool::get_instance();
+		auto tp = thread_pool::get_instance();
 		typedef typename std::result_of<_function(_iter_type, _iter_type, _args...)>::type return_type;
 		std::vector<std::future<return_type>> thread_result;
 		auto thread_count = min((end - begin), std::thread::hardware_concurrency(), max(1, _hint));
@@ -132,7 +133,7 @@ namespace harpocrates {
 	// u can put heavy caculation into such as a vector or some other container
 	template<typename _iter_type, typename  _function>
 	return_code parallel_for_each(_iter_type begin, _iter_type end, _function function) {
-		auto tp = ThreadPool::get_instance();
+		auto tp = thread_pool::get_instance();
 		typedef typename std::result_of<_function(_iter_type)>::type return_type;
 		std::vector<std::future<return_type>> thread_result;
 		for (auto iter = begin; iter < end; ++iter) {

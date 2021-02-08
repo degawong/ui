@@ -1,11 +1,12 @@
 /*
- * @Description: 
- * @Autor: degawong
- * @Date: 2020-03-23 16:41:29
- * @LastEditors: degawong
- * @LastEditTime: 2020-05-12 15:03:32
- * @FilePath: \harpocrates\singleton_pattern.hpp
+ * @Author: your name
+ * @Date: 2021-01-22 17:37:11
+ * @LastEditTime: 2021-02-08 14:43:24
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: \harpocrates\module\singleton_pattern.hpp
  */
+
 #pragma once
 
 #include <deque>
@@ -25,7 +26,7 @@
 namespace harpocrates {
 
 	template<typename _derived>
-	class SingletonPattern {
+	class singleton_pattern {
 	public:
 		template<typename ..._args>
 		static std::shared_ptr<_derived> get_instance(_args&&... args) {
@@ -39,23 +40,23 @@ namespace harpocrates {
 			return __instance;
 		}
 	protected:
-		SingletonPattern() = default;
-		virtual ~SingletonPattern() {}
+		singleton_pattern() = default;
+		virtual ~singleton_pattern() {}
 	protected:
-		SingletonPattern(SingletonPattern<_derived>&& anther) = delete;
-		SingletonPattern(const SingletonPattern<_derived>& anther) = delete;
-		SingletonPattern<_derived> &operator=(SingletonPattern<_derived>&& anther) = delete;
-		SingletonPattern<_derived> &operator=(const SingletonPattern<_derived>& anther) = delete;
+		singleton_pattern(singleton_pattern<_derived>&& anther) = delete;
+		singleton_pattern(const singleton_pattern<_derived>& anther) = delete;
+		singleton_pattern<_derived> &operator=(singleton_pattern<_derived>&& anther) = delete;
+		singleton_pattern<_derived> &operator=(const singleton_pattern<_derived>& anther) = delete;
 	private:
 		static std::mutex __mutex;
 		static std::shared_ptr<_derived> __instance;
 	};
 
 	template<typename _derived>
-	std::mutex SingletonPattern<_derived>::__mutex;
+	std::mutex singleton_pattern<_derived>::__mutex;
 
 	template<typename _derived>
-	std::shared_ptr<_derived> SingletonPattern<_derived>::__instance = nullptr;
+	std::shared_ptr<_derived> singleton_pattern<_derived>::__instance = nullptr;
 
 	class SingletonMY {
 	public:

@@ -41,6 +41,14 @@ file(
 	${CMAKE_CURRENT_SOURCE_DIR}/shader/*.glsl
 )
 
+file(
+	GLOB_RECURSE
+	module_file
+	${CMAKE_CURRENT_SOURCE_DIR}/module/*.h
+	${CMAKE_CURRENT_SOURCE_DIR}/module/*.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/module/*.hpp
+)
+
 source_group(
 	"glsl"
 	FILES
@@ -55,16 +63,12 @@ file(
 
 add_executable(
 	${PROJECT_NAME}
-	base.h
 	io.cpp
 	io.hpp
 	${opengl_file}
 	${shader_file}
+	${module_file}
 	harpocrates.cpp
-	path_walker.hpp
-	scope_guard.hpp
-	thread_pool.hpp
-	singleton_pattern.hpp
 )
 
 target_include_directories(
@@ -78,6 +82,7 @@ target_link_libraries(
 	algorithm
 	${opengl_library}
 )
+
 set_property(
 	GLOBAL PROPERTY
 	USE_FOLDERS on
