@@ -50,15 +50,16 @@ namespace harpocrates {
 	template<char... _>
 	auto signature_v = _signature<_signature_type<_...>>::value;
 
-	template<char... _>
-	using signature_t = _signature<_signature_type<_...>>::type;
+	//template<char... _>
+	//using signature_t = _signature<_signature_type<_...>>::type;
 	
 	template<typename _type, typename = void>
-	struct _parallelable : std::false_type {
+	struct _is_parallelable : std::false_type {
+		//static const bool value = false;
 	};
 
 	template<typename _type>
-	struct _parallelable<
+	struct _is_parallelable <
 		_type,
 		std::void_t<
 			decltype(std::declval<_type&>().end()),
@@ -66,16 +67,17 @@ namespace harpocrates {
 			decltype(std::declval<_type&>().signature())
 		>
 	> : std::true_type {
+		//static const bool value = true;
 	};
 	
 	template<typename _type>
-	auto parallelable_v = _parallelable<_type>::value;
+	auto is_parallelable_v = _is_parallelable<_type>::value;
 
-	template<typename _type>
-	using parallelable_t = _parallelable<_type>::type;
+	//template<typename _type>
+	//using is_parallelable_t = _is_parallelable<_type>::type;
 
-	template<typename _type>
-	constexpr auto _instantance = std::void_t<_type>{};
+	//template<typename _type>
+	//constexpr auto _instantance = std::void_t<_type>{};
 
 	template<typename _type, typename... _args>
 	std::false_type _is_implemented(...);

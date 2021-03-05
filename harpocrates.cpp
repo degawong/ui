@@ -11,6 +11,7 @@
 #include <thread>
 #include <fstream>
 #include <iostream>
+#include <functional>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -19,9 +20,10 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <path_walker.hpp>
-#include <scope_guard.hpp>
-#include <scoped_allocator>
+#include <module/path_walker.hpp>
+#include <module/scope_guard.hpp>
+#include <module/thread_pool.hpp>
+#include <module/meta_program.hpp>
 
 #include <stb_image_aug.h>
 
@@ -54,10 +56,19 @@ float vertices[] = {
 	-1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f 
 };
 
-// https://stackoverflow.com/questions/25351176/drawing-text-with-opengl-glfw-freetype-produces-white-rectangle-instead-of-g
-
 int main() {
-
+	{
+		std::mutex mtk;
+		parallel_execution(
+			[&mtk](auto begin, auto end) {
+				auto lock = std::lock_guard(mtk);
+				cout << begin << "  " << end << endl;
+				cout << std::this_thread::get_id() << endl;
+			},
+			1,
+			10
+		);
+	}
 	auto data = new unsigned char[4 * width * height]{ 0 };
 	defer(delete[] data);
 
@@ -172,7 +183,7 @@ int main() {
 
 	thread(std::move(packaged_task<void()>{[&]() {
 		auto path = std::string();
-		auto image_list = PathWalker::get_instance()->walk_path(path);
+		auto image_list = path_walker::get_instance()->walk_path(path);
 		auto algorithm = Algorithm();
 		for (auto& ref : image_list) {
 			algorithm.apply();
