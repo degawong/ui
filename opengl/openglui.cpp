@@ -13,6 +13,8 @@
 #include <sstream>
 #include <iostream>
 
+#include <module/base.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -234,7 +236,11 @@ namespace harpocrates {
 	}
 
 	mat4x4 Camera::get_projection() {
-		return perspective(radians(__fov[0]), __window_size.x / __window_size.y, 0.1f, 100.0f);
+		float _min_aspect = 0.000166f;
+		float _max_aspect = 6000.000f;
+		auto aspect = static_cast<float>(__window_size.x / (__window_size.y + 1e-6));
+		aspect = min(max(aspect, _min_aspect), _max_aspect);
+		return perspective(radians(__fov[0]), aspect, 0.1f, 100.0f);
 	}
 
 	void Camera::set_position(vec4 position) {
