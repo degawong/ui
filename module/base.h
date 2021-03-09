@@ -360,17 +360,20 @@ namespace harpocrates {
 		};
 	}
 
-	std::string formation(const char* format, ...) {
-		const int const_size = 512;
-		char description[const_size]{ "\0" };
-		if (format) {
-			va_list vl;
-			va_start(vl, format);
-			vsnprintf(description, sizeof(description), format, vl);
-			va_end(vl);
-			description[sizeof(description) - 1] = '\0';
+	namespace format {
+		template<typename>
+		std::string formation(const char* format, ...) {
+			const int const_size = 512;
+			char description[const_size]{ "\0" };
+			if (format) {
+				va_list vl;
+				va_start(vl, format);
+				vsnprintf(description, sizeof(description), format, vl);
+				va_end(vl);
+				description[sizeof(description) - 1] = '\0';
+			}
+			return std::string(description);
 		}
-		return std::string(description);
 	}
 
 	namespace operator_reload {
