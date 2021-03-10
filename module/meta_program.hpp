@@ -168,6 +168,8 @@ namespace harpocrates {
 	}
 	template <typename _iter>
 	using access_t = std::conditional_t<
+		// vector<bool> reference is a proxy reference
+		// https://stackoverflow.com/questions/17794569/why-isnt-vectorbool-a-stl-container
 		std::is_same_v<_iter, std::vector<bool>::iterator> ||
 		std::is_same_v<_iter, std::vector<bool>::const_iterator>,
 		typename _iter::value_type,
