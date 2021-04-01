@@ -1,4 +1,4 @@
 
 add_subdirectory(
-	algorithm
+	base_algorithm
 )

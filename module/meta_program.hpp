@@ -7,7 +7,6 @@
  * @FilePath: \harpocrates\module\meta_program.hpp
  */
 
-
 #pragma once
 
 #include <tuple>
@@ -16,6 +15,9 @@
 #include <type_traits>
 
 namespace harpocrates {
+
+#define _proto_name_(type)        #type
+
 	template<char...>
 	struct _signature_type {
 	};
@@ -55,7 +57,20 @@ namespace harpocrates {
 
 	//template<char... _>
 	//using signature_t = _signature<_signature_type<_...>>::type;
-	
+
+	auto information_stream = [](auto&& os, auto&&... args) {
+		std::initializer_list<int>{
+			([&](auto&& arg) {
+				os << arg << ", ";
+			}(args), 0)...
+		};
+		os << std::endl;
+	};
+
+	auto console_stream = [](auto&&... args) {
+		return information_stream(std::cout, args...);
+	};
+
 	template<typename _type, typename = void>
 	struct _is_parallelable : std::false_type {
 	};
@@ -81,22 +96,6 @@ namespace harpocrates {
 	// https://scicomp.stackexchange.com/questions/25738/two-level-iterators-c
 	// https://stackoverflow.com/questions/8511035/sequence-zip-function-for-c11
 	// https://www.ibm.com/support/knowledgecenter/SSLTBW_2.3.0/com.ibm.zos.v2r3.cbclx01/template_template_arguments.htm
-	template <typename _iter>
-	decltype(auto) _advance_iterator(_iter&& iter) {
-		return iter++;
-	}
-
-	template <typename _iter_head, typename... _iter_tails>
-	decltype(auto) _advance_iterator(_iter_head&& iter_head, _iter_tails&&... iter_tails) {
-		return { iter_head++, advance_iterator(iter_tails...) };
-	}
-
-	//template <
-	//	template<typename _iter_data_type_head>
-	//	class _iter_head,
-	//	template<typename... _iter_data_type_tails>
-	//	class... _iter_tails
-	//>
 
 	template <typename _iter_head, typename... _iter_tails>
 	class zzip {

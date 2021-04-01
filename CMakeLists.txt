@@ -75,11 +75,12 @@ target_include_directories(
 	${PROJECT_NAME}
 	PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}
+	${CMAKE_CURRENT_SOURCE_DIR}/algorithm
 )
 
 target_link_libraries(
 	${PROJECT_NAME}
-	algorithm
+	base_algorithm
 	${opengl_library}
 )
 
@@ -90,7 +91,7 @@ set_property(
 
 set_property(
 	TARGET
-	algorithm
+	base_algorithm
 	PROPERTY FOLDER "algorithm"
 )
 
@@ -111,14 +112,14 @@ set_target_properties(
 	"${CMAKE_CURRENT_SOURCE_DIR}/workspace/"
 )
 
-set_Target_Properties(
-	${PROJECT_NAME}
-	PROPERTIES
-	LINK_FLAGS_DEBUG
-	"/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup"
-	LINK_FLAGS_RELEASE
-	"/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup"
-)
+# set_Target_Properties(
+	# ${PROJECT_NAME}
+	# PROPERTIES
+	# LINK_FLAGS_DEBUG
+	# "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup"
+	# LINK_FLAGS_RELEASE
+	# "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup"
+# )
 
 # # copy your dll library to workspace
 # add_custom_command(

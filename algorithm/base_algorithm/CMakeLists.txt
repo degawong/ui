@@ -1,6 +1,6 @@
 
 project(
-	algorithm
+	base_algorithm
 )
 
 cmake_minimum_required(VERSION 3.0)
