@@ -22,5 +22,7 @@ namespace harpocrates {
 		}
 	private:
 		std::map<std::string, std::shared_ptr<base_algorithm>> __operation;
+		//auto deleter = [](auto pointer) {delete reinterpret_cast<derived_name*>(pointer); };
+		//std::unique_ptr<base_name, decltype(deleter)> base = std::unique_ptr<derived_name, decltype(deleter)>{ new derived_name{}, deleter };
 	};
 }

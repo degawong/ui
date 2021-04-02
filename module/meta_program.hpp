@@ -175,7 +175,7 @@ namespace harpocrates {
 		typename _iter::reference
 	>;
 	template <typename... _iters>
-	class zip_iterator {
+	class zip_iterator : public std::iterator<std::forward_iterator_tag, _iters...> {
 		using value_type = std::tuple<access_t<_iters>...>;
 	public:
 		zip_iterator() = delete;
